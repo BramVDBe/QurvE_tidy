@@ -711,9 +711,16 @@ tidy_to_custom <-function (df, data.format = "col")
     time_vectors <- df %>% group_by(Group) %>% summarise(Time = list(sort(unique(Time)))) %>% 
       pull(Time) %>% unique()
     
-    df <- df %>% mutate(time_group = purrr:::map_int(list(Time), 
-      ~which(purrr:::map_lgl(time_vectors, ~all(.x == 
-        .)))))
+    df <- df %>% group_by(Group) %>%
+      mutate(time_group = which.min(
+                     sapply(time_vectors, function(tv) {
+                         # Calculate the difference between each Time value and the time_vector
+                             # Here, using the sum of squared differences as an example
+                             sum((Time - mean(tv))^2)
+                       })
+                 )
+             ) %>%
+           ungroup()
     
     df_subsets <- split(df, df$time_group)
     
