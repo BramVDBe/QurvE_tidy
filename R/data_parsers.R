@@ -431,8 +431,7 @@ read_data<-function (data.growth = NA, data.fl = NA, data.fl2 = NA, data.format 
           time.ndx[i + 1] - time.ndx[i] - 1
         }), nrow = if (is.na(time.ndx[i + 1])) {
         nrow(dat.time) - time.ndx[i]
-      }
-      else {
+      } else {
         time.ndx[i + 1] - time.ndx[i] - 1
       }, byrow = TRUE))))
     }
@@ -446,14 +445,15 @@ read_data<-function (data.growth = NA, data.fl = NA, data.fl2 = NA, data.format 
       df.mat <- data.frame(df[(time.ndx[1] + 1):(time.ndx[2] - 
         1), ])
       for (i in 2:(length(time.ndx))) {
-        df.mat <- rbind(df.mat, data.frame(df[if (is.na(time.ndx[i + 
+        df.mat <- cbind(df.mat, data.frame(df[if (is.na(time.ndx[i + 
           1])) {
           (time.ndx[i] + 1):nrow(df)
         } else {
           (time.ndx[i] + 1):(time.ndx[i + 1] - 1)
         }, ]))
       }
-    }
+      df.mat <- t(df.mat)}
+    
     return(df.mat)
   }
   
@@ -742,13 +742,16 @@ tidy_to_custom <-function (df, data.format = "col")
         values <- subset[subset$Group == group, ]$Values
         
         nreps <- round(length(values)/(nrow(new_df)-3))
-        
+
+        if (nreps>1) {
         for (i in 1:nreps) {
           selected_values <- values[seq(from = i, to = length(values), by = nreps)]
           
           column_name <- paste0(group, "_", i)
           new_df[, column_name] <- c(description, replicate, concentration, selected_values)
-        }
+        }} else {
+          new_df[, group] <- c(description, replicate, concentration, values)
+        }     
         
       }
       colnames(new_df) <- new_df[1, ]
